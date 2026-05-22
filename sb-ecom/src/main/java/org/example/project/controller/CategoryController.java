@@ -33,14 +33,10 @@ public class CategoryController {
         this.categoryRepository = categoryRepository;
     }
 
-    public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
-
-    @GetMapping("/api/echo")
-    public ResponseEntity<String> echoMessage(@RequestParam(name = "message" , defaultValue = "hello siam") String message){
-        return new ResponseEntity<>("Echo message " + message , HttpStatus.OK);
-    }
+//    @GetMapping("/api/echo")
+//    public ResponseEntity<String> echoMessage(@RequestParam(name = "message" , defaultValue = "hello siam") String message){
+//        return new ResponseEntity<>("Echo message " + message , HttpStatus.OK);
+//    }
 
     @GetMapping("/api/public/categories")
 //    @RequestMapping(value= "/api/public/categories", method = RequestMethod.GET) another way to implemnt endpoint
