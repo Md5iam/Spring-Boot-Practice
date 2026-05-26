@@ -1,5 +1,6 @@
 package org.example.project.service;
 
+import jakarta.transaction.Transactional;
 import org.example.project.model.Category;
 import org.example.project.payload.CategoryDTO;
 import org.example.project.payload.CategoryResponse;
