@@ -1,0 +1,119 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< org.example:SEUOJ >--------------------------
+[INFO] Building SEUOJ 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.0.6:run (default-cli) > test-compile @ SEUOJ >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ SEUOJ ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ SEUOJ ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ SEUOJ ---
+[INFO] skip non existing resourceDirectory /home/phantom-13/Siam/SEUOJ/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ SEUOJ ---
+[INFO] Recompiling the module because of added or removed source files.
+[INFO] Compiling 1 source file with javac [debug parameters release 17] to target/test-classes
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
+WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] 
+[INFO] <<< spring-boot:4.0.6:run (default-cli) < test-compile @ SEUOJ <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.0.6:run (default-cli) @ SEUOJ ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-05-27T19:21:51.444+06:00  INFO 94055 --- [SEUOJ] [           main] org.example.seuoj.SeuojApplication       : Starting SeuojApplication using Java 26.0.1 with PID 94055 (/home/phantom-13/Siam/SEUOJ/target/classes started by phantom-13 in /home/phantom-13/Siam/SEUOJ)
+2026-05-27T19:21:51.449+06:00  INFO 94055 --- [SEUOJ] [           main] org.example.seuoj.SeuojApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-05-27T19:21:52.645+06:00  INFO 94055 --- [SEUOJ] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-27T19:21:52.766+06:00  INFO 94055 --- [SEUOJ] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 108 ms. Found 10 JPA repository interfaces.
+2026-05-27T19:21:53.706+06:00  INFO 94055 --- [SEUOJ] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-05-27T19:21:53.731+06:00  INFO 94055 --- [SEUOJ] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-27T19:21:53.732+06:00  INFO 94055 --- [SEUOJ] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-05-27T19:21:53.806+06:00  INFO 94055 --- [SEUOJ] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 2266 ms
+2026-05-27T19:21:54.111+06:00  INFO 94055 --- [SEUOJ] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-05-27T19:21:54.175+06:00  INFO 94055 --- [SEUOJ] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-05-27T19:21:54.858+06:00  INFO 94055 --- [SEUOJ] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-27T19:21:54.903+06:00  INFO 94055 --- [SEUOJ] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-27T19:21:55.425+06:00  INFO 94055 --- [SEUOJ] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@733fa95c
+2026-05-27T19:21:55.427+06:00  INFO 94055 --- [SEUOJ] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-27T19:21:55.473+06:00  WARN 94055 --- [SEUOJ] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-27T19:21:55.507+06:00  INFO 94055 --- [SEUOJ] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/seuoj]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.4
+	Default catalog/schema: seuoj/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-27T19:21:57.306+06:00  INFO 94055 --- [SEUOJ] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-27T19:21:57.457+06:00  INFO 94055 --- [SEUOJ] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-27T19:21:57.597+06:00  INFO 94055 --- [SEUOJ] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldOffset has been called by org.modelmapper.internal.typetools.TypeResolver (file:/home/phantom-13/.m2/repository/org/modelmapper/modelmapper/3.2.4/modelmapper-3.2.4.jar)
+WARNING: Please consider reporting this to the maintainers of class org.modelmapper.internal.typetools.TypeResolver
+WARNING: sun.misc.Unsafe::staticFieldOffset will be removed in a future release
+2026-05-27T19:21:58.526+06:00  INFO 94055 --- [SEUOJ] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-05-27T19:21:58.527+06:00  WARN 94055 --- [SEUOJ] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-05-27T19:21:58.693+06:00  WARN 94055 --- [SEUOJ] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-27T19:21:59.706+06:00  INFO 94055 --- [SEUOJ] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-05-27T19:21:59.714+06:00  INFO 94055 --- [SEUOJ] [           main] org.example.seuoj.SeuojApplication       : Started SeuojApplication in 8.881 seconds (process running for 9.593)
+2026-05-27T19:23:53.476+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-27T19:23:53.476+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-27T19:23:53.479+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-05-27T19:23:58.424+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-4] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T19:23:58.451+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-5] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T19:25:50.480+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-2] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_9026787660609454270 for run
+2026-05-27T19:47:42.765+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-7] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T19:47:42.774+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-9] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T20:09:28.933+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-5] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T20:09:28.949+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-7] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T20:15:44.432+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-2] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_12624327412821198203 for run
+2026-05-27T20:15:56.802+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-7] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_1788134438051603129 for run
+2026-05-27T20:16:02.073+06:00  INFO 94055 --- [SEUOJ] [         task-1] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Starting async judging for submission 22
+2026-05-27T20:16:02.076+06:00  INFO 94055 --- [SEUOJ] [         task-1] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_16898777073146736855 for submission 22
+2026-05-27T20:16:04.951+06:00  INFO 94055 --- [SEUOJ] [         task-1] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 1/2 for submission 22
+2026-05-27T20:16:04.956+06:00  INFO 94055 --- [SEUOJ] [         task-1] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Submission 22 evaluated: WRONG_ANSWER in 2ms
+2026-05-27T20:16:04.958+06:00  INFO 94055 --- [SEUOJ] [         task-1] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Finished judging submission 22 -> WRONG_ANSWER
+2026-05-27T20:17:32.494+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-1] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_13758870539741915185 for run
+2026-05-27T20:17:41.686+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-4] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_1113626919864187845 for run
+2026-05-27T20:17:52.157+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-8] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_5764994756375127537 for run
+2026-05-27T20:17:58.800+06:00  INFO 94055 --- [SEUOJ] [nio-8080-exec-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_18055355906375115850 for run
+2026-05-27T20:18:06.626+06:00  INFO 94055 --- [SEUOJ] [         task-2] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Starting async judging for submission 23
+2026-05-27T20:18:06.628+06:00  INFO 94055 --- [SEUOJ] [         task-2] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_7869416715308910769 for submission 23
+2026-05-27T20:18:09.267+06:00  INFO 94055 --- [SEUOJ] [         task-2] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 1/2 for submission 23
+2026-05-27T20:18:09.271+06:00  INFO 94055 --- [SEUOJ] [         task-2] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 2/2 for submission 23
+2026-05-27T20:18:09.276+06:00  INFO 94055 --- [SEUOJ] [         task-2] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Submission 23 evaluated: ACCEPTED in 2ms
+2026-05-27T20:18:09.281+06:00  INFO 94055 --- [SEUOJ] [         task-2] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Finished judging submission 23 -> ACCEPTED
+2026-05-27T20:18:51.893+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-6] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T20:18:51.911+06:00 ERROR 94055 --- [SEUOJ] [nio-8080-exec-7] o.e.s.security.jwt.AuthEntryPointJwt     : Unauthorized error: Full authentication is required to access this resource
+2026-05-27T20:24:13.079+06:00  INFO 94055 --- [SEUOJ] [io-8080-exec-10] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_run_8901855122974734100 for run
+2026-05-27T20:24:17.573+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Starting async judging for submission 24
+2026-05-27T20:24:17.574+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Sandbox created at /tmp/seuoj_sandbox_6765337118028483351 for submission 24
+2026-05-27T20:24:20.384+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 1/4 for submission 24
+2026-05-27T20:24:20.389+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 2/4 for submission 24
+2026-05-27T20:24:20.394+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 3/4 for submission 24
+2026-05-27T20:24:20.399+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 4/4 for submission 24
+2026-05-27T20:24:20.403+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Submission 24 evaluated: ACCEPTED in 2ms
+2026-05-27T20:24:20.407+06:00  INFO 94055 --- [SEUOJ] [         task-3] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Finished judging submission 24 -> ACCEPTED

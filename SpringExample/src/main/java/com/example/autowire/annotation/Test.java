@@ -8,7 +8,6 @@ public class Test {
     private Manager manager;
     private Employee employee;
 
-
     // only allow one @Autowired not multiple in each class
     @Autowired
     public Test(Manager manager, Employee employee) {

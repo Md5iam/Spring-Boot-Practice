@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-ide-bg: #f8fafc;
+  --color-ide-card: #ffffff;
+  --color-ide-border: #e2e8f0;
+  --color-ide-text: #0f172a;
+  --color-ide-primary: #3b82f6;
+  --color-ide-accent: #10b981;
+  --color-ide-warning: #f59e0b;
+  --color-ide-primary-2: #6366f1;
+
+  --font-sans: 'Outfit', 'Inter', sans-serif;
+  --font-mono: 'Fira Code', 'JetBrains Mono', monospace;
+}
+
+@utility ide-shadow {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+}
+
+@utility ide-shadow-lg {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+@utility glassmorphism {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Custom base settings */
+body {
+  @apply bg-ide-bg text-ide-text font-sans antialiased overflow-x-hidden;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(219, 234, 254, 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(209, 250, 229, 0.2) 0px, transparent 50%);
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+*:focus-visible {
+  outline: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-sans tracking-tight font-semibold text-slate-900;
+}
+
+/* Scrollbar polish (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.12);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.12);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Custom Micro-animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Reusable component primitives */
+@utility ui-card {
+  @apply bg-white border border-slate-200/80 rounded-3xl shadow-sm;
+}
+
+@utility ui-card-elevated {
+  @apply bg-white border border-slate-200/80 rounded-3xl shadow-xl shadow-slate-200/40;
+}
+
+@utility ui-input {
+  @apply w-full bg-white border border-slate-200/80 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm;
+  @apply focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10;
+}
+
+@utility ui-btn {
+  @apply inline-flex items-center justify-center gap-2 font-extrabold transition-all cursor-pointer select-none;
+  @apply rounded-2xl px-6 py-3.5;
+  @apply focus:ring-4 focus:ring-blue-500/15;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+@utility ui-btn-sm {
+  @apply rounded-xl px-4 py-2.5 text-xs;
+}
+
+@utility ui-btn-primary {
+  @apply ui-btn text-white shadow-lg shadow-blue-500/10;
+  @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500;
+  @apply hover:scale-[1.02];
+}
+
+@utility ui-btn-secondary {
+  @apply ui-btn bg-white text-slate-700 border border-slate-200/80 shadow-sm;
+  @apply hover:bg-slate-50 hover:scale-[1.02];
+}
+
+@utility ui-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-black tracking-wider;
+}
