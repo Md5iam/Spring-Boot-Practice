@@ -629,10 +629,4 @@ All configuration is stored in `src/main/resources/application.properties`:
 
 ---
 
-## License
-
-This project was developed as part of **CSE 471 — Web and Internet Programming** at Southeast University, Dhaka, Bangladesh.
-
----
-
 *Built with ❤️ using Spring Boot, React, TypeScript, and PostgreSQL.*
