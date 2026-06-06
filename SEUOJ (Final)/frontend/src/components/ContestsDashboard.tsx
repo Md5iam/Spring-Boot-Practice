@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, ArrowRight, Loader2, ArrowLeft, RefreshCw, Star, Plus } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, ArrowLeft, RefreshCw, Star, Plus, Edit2, Trash2 } from 'lucide-react';
 import ContestCreationModal from './ContestCreationModal';
 
 interface Contest {
@@ -57,15 +57,16 @@ interface ContestsDashboardProps {
   user: UserSession | null;
   triggerAuth: (mode?: 'login' | 'signup') => void;
   onSelectProblem: (problemId: number, contestId?: number) => void;
+  selectedContestId: number | null;
+  setSelectedContestId: (id: number | null) => void;
 }
 
-export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }: ContestsDashboardProps) {
+export default function ContestsDashboard({ user, triggerAuth, onSelectProblem, selectedContestId, setSelectedContestId }: ContestsDashboardProps) {
   const [tab, setTab] = useState<'ongoing' | 'upcoming' | 'past'>('ongoing');
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Drilldown states
-  const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
   const [contestDetail, setContestDetail] = useState<ContestDetail | null>(null);
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -73,11 +74,12 @@ export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }
   const [registering, setRegistering] = useState(false);
   const [regMessage, setRegMessage] = useState('');
   const [isCreationOpen, setIsCreationOpen] = useState(false);
+  const [editContestId, setEditContestId] = useState<number | null>(null);
   const authTokenRaw = user?.jwtToken || user?.token;
   const authToken = authTokenRaw && authTokenRaw !== 'undefined' && authTokenRaw !== 'null' ? authTokenRaw : '';
 
   const [now, setNow] = useState(new Date());
-  const [successContestId, setSuccessContestId] = useState<number | null>(null);
+
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
@@ -211,10 +213,8 @@ export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }
       if (response.ok) {
         const data = await response.json();
         setRegMessage(data.message || 'Successfully registered for this contest!');
-        setSuccessContestId(id);
         setSuccessMessage(data.message || 'Successfully registered!');
         setTimeout(() => {
-          setSuccessContestId(null);
           setSuccessMessage('');
         }, 5000);
         // Update stats
@@ -231,6 +231,28 @@ export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }
       setRegMessage('Failed to register. Please try again.');
     } finally {
       setRegistering(false);
+    }
+  };
+
+  const handleDeleteContest = async (contestId: number) => {
+    if (!window.confirm('Are you sure you want to permanently delete this contest?')) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/admin/contests/${contestId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      if (response.ok) {
+        fetchContests();
+      } else {
+        alert('Failed to delete contest.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('An error occurred while deleting the contest.');
     }
   };
 
@@ -435,7 +457,10 @@ export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }
             </div>
             {user && user.roles.includes('ROLE_ADMIN') && (
               <button
-                onClick={() => setIsCreationOpen(true)}
+                onClick={() => {
+                  setEditContestId(null);
+                  setIsCreationOpen(true);
+                }}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs px-5 py-3 rounded-2xl shadow-md transition-all hover:scale-[1.02] flex items-center gap-2 cursor-pointer self-start md:self-auto"
               >
                 <Plus className="h-4 w-4" />
@@ -488,13 +513,40 @@ export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }
                   >
                     <div>
                       <div className="flex items-center justify-between gap-4 mb-4">
-                        <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                          contest.status === 'ONGOING' ? 'bg-rose-50 text-rose-600' :
-                          contest.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
-                          'bg-slate-100 text-slate-600'
-                        }`}>
-                          {contest.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                            contest.status === 'ONGOING' ? 'bg-rose-50 text-rose-600' :
+                            contest.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            {contest.status}
+                          </span>
+                          {isUserAdmin && (
+                            <div className="flex items-center gap-1 ml-2 border-l border-slate-250 pl-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditContestId(contest.contestId);
+                                  setIsCreationOpen(true);
+                                }}
+                                className="p-1 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+                                title="Edit Contest"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteContest(contest.contestId);
+                                }}
+                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+                                title="Delete Contest"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         
                         {contest.status === 'UPCOMING' ? (
                           <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50/50 px-2.5 py-1 rounded-lg border border-blue-100/30">
@@ -590,6 +642,7 @@ export default function ContestsDashboard({ user, triggerAuth, onSelectProblem }
         onSuccess={() => {
           fetchContests();
         }}
+        editContestId={editContestId}
       />
     </div>
   );

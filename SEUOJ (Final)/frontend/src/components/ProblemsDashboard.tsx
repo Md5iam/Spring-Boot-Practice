@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Search, CheckCircle2, Circle, AlertCircle, Sparkles, Flame, HelpCircle, Loader2, Plus, Check } from 'lucide-react';
+import { Search, CheckCircle2, Circle, AlertCircle, Sparkles, Flame, HelpCircle, Loader2, Plus, Eye } from 'lucide-react';
 import ProblemCreationModal from './ProblemCreationModal';
+import ProblemReviewModal from './ProblemReviewModal';
 
 interface Problem {
   id: number;
@@ -46,7 +47,8 @@ export default function ProblemsDashboard({ onSelectProblem, user }: ProblemsDas
 
   // Admin approval queue state
   const [pendingProblems, setPendingProblems] = useState<PendingProblem[]>([]);
-  const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [reviewProblemId, setReviewProblemId] = useState<number | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   const dummyProblemsList: Problem[] = [
     { id: 1, title: 'Two Sum Resolution', difficulty: 'Easy', acceptance: '82.4%', category: 'Arrays', points: 10, status: 'solved' },
@@ -114,27 +116,6 @@ export default function ProblemsDashboard({ onSelectProblem, user }: ProblemsDas
       }
     } catch (e) {
       console.error(e);
-    }
-  };
-
-  const handleApproveProblem = async (problemId: number) => {
-    if (!user) return;
-    setApprovingId(problemId);
-    try {
-      const response = await fetch(`/api/admin/problems/${problemId}/approve`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${user.jwtToken || user.token}`
-        }
-      });
-      if (response.ok) {
-        fetchPendingProblems();
-        fetchProblems();
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setApprovingId(null);
     }
   };
 
@@ -298,16 +279,14 @@ export default function ProblemsDashboard({ onSelectProblem, user }: ProblemsDas
                   </p>
                 </div>
                 <button
-                  onClick={() => handleApproveProblem(p.problemId)}
-                  disabled={approvingId === p.problemId}
-                  className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-[10px] font-black uppercase px-4 py-2.5 rounded-xl flex items-center gap-1 cursor-pointer shrink-0"
+                  onClick={() => {
+                    setReviewProblemId(p.problemId);
+                    setIsReviewOpen(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase px-4 py-2.5 rounded-xl flex items-center gap-1 cursor-pointer shrink-0"
                 >
-                  {approvingId === p.problemId ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Check className="h-3.5 w-3.5" />
-                  )}
-                  Approve & Publish
+                  <Eye className="h-3.5 w-3.5" />
+                  Review Proposal
                 </button>
               </div>
             ))}
@@ -523,15 +502,30 @@ export default function ProblemsDashboard({ onSelectProblem, user }: ProblemsDas
 
       {/* Creation Modal Container */}
       <ProblemCreationModal 
-        isOpen={isCreationOpen} 
-        onClose={() => setIsCreationOpen(false)}
+      isOpen={isCreationOpen} 
+      onClose={() => setIsCreationOpen(false)}
+      onSuccess={() => {
+        fetchProblems();
+        if (user?.roles.includes('ROLE_ADMIN')) {
+          fetchPendingProblems();
+        }
+      }}
+      user={user}
+      />
+
+      {/* Review Modal Container */}
+      <ProblemReviewModal
+        isOpen={isReviewOpen}
+        onClose={() => {
+          setIsReviewOpen(false);
+          setReviewProblemId(null);
+        }}
+        problemId={reviewProblemId}
+        user={user}
         onSuccess={() => {
           fetchProblems();
-          if (user?.roles.includes('ROLE_ADMIN')) {
-            fetchPendingProblems();
-          }
+          fetchPendingProblems();
         }}
-        user={user}
       />
 
     </div>

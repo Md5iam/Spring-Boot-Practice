@@ -173,7 +173,12 @@ public class ContestServiceImpl implements ContestService {
             if (isOngoing) {
                 throw new APIException("Contest is live. Please sign in and register to participate.");
             }
-            ContestDetailDTO detail = modelMapper.map(contest, ContestDetailDTO.class);
+            ContestDetailDTO detail = new ContestDetailDTO();
+            detail.setContestId(contest.getContestId());
+            detail.setTitle(contest.getTitle());
+            detail.setDescription(contest.getDescription());
+            detail.setStartTime(contest.getStartTime());
+            detail.setEndTime(contest.getEndTime());
             detail.setStatus(status);
             detail.setRegistered(false);
             detail.setRegistrationOpen(isUpcoming);
@@ -195,7 +200,12 @@ public class ContestServiceImpl implements ContestService {
             throw new APIException("Contest is live. Only registered users can enter and participate.");
         }
 
-        ContestDetailDTO detail = modelMapper.map(contest, ContestDetailDTO.class);
+        ContestDetailDTO detail = new ContestDetailDTO();
+        detail.setContestId(contest.getContestId());
+        detail.setTitle(contest.getTitle());
+        detail.setDescription(contest.getDescription());
+        detail.setStartTime(contest.getStartTime());
+        detail.setEndTime(contest.getEndTime());
         detail.setStatus(status);
         detail.setRegistered(isRegistered);
         detail.setRegistrationOpen(isUpcoming);
@@ -339,6 +349,16 @@ public class ContestServiceImpl implements ContestService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void calculateAllPendingContestRatings() {
+        List<Contest> endedContests = contestRepository.findByEndTimeBeforeOrderByEndTimeDesc(LocalDateTime.now());
+        for (Contest contest : endedContests) {
+            if (!Boolean.TRUE.equals(contest.getIsRatingCalculated())) {
+                checkAndCalculateContestRatings(contest);
+            }
+        }
+    }
+
     // ─────────────────────────────────────────────
     // Rating calculation (called once per contest)
     // ─────────────────────────────────────────────
@@ -377,13 +397,25 @@ public class ContestServiceImpl implements ContestService {
                 .findByContestContestId(current.getContestId(), Pageable.unpaged())
                 .getContent();
 
+        // Active participants are registered users who made at least one submission in this contest
+        Set<User> activeParticipants = submissions.stream()
+                .map(Submission::getUser)
+                .filter(participants::contains)
+                .collect(Collectors.toSet());
+
+        if (activeParticipants.isEmpty()) {
+            current.setIsRatingCalculated(true);
+            contestRepository.save(current);
+            return;
+        }
+
         Map<User, List<Submission>> acceptedByUser = submissions.stream()
                 .filter(s -> s.getStatus() == SubmissionStatus.ACCEPTED)
                 .collect(Collectors.groupingBy(Submission::getUser));
 
         // Build score rows for ranking
         List<ContestStandingsDTO.StandingRow> rows = new ArrayList<>();
-        for (User user : participants) {
+        for (User user : activeParticipants) {
             List<Submission> accepted = acceptedByUser.getOrDefault(user, new ArrayList<>());
             Set<Long> solved = new HashSet<>();
             int score = 0;
@@ -410,28 +442,23 @@ public class ContestServiceImpl implements ContestService {
             return a.getLastSubmissionTime().compareTo(b.getLastSubmissionTime());
         });
 
-        // Assign 1-based ranks; participants with no submissions get the bottom ranks
+        // Assign 1-based ranks
         Map<String, Integer> rankMap = new HashMap<>();
         int r = 1;
         for (ContestStandingsDTO.StandingRow row : rows) {
             rankMap.put(row.getUsername(), r++);
         }
-        for (User user : participants) {
-            rankMap.putIfAbsent(user.getUserName(), r++);
-        }
 
-        int n = participants.size();
-
-        // Compute deltas using pairwise expected vs actual score
+        // Compute deltas using pairwise expected vs actual score among active participants
         Map<String, Double> deltas = new HashMap<>();
-        for (User player : participants) {
+        for (User player : activeParticipants) {
             int playerRating = safeRating(player);
             int playerRank = rankMap.get(player.getUserName());
 
             double expectedScore = 0.0;  // sum of P(player beats each opponent)
             double actualScore   = 0.0;  // sum of actual results vs each opponent
 
-            for (User opponent : participants) {
+            for (User opponent : activeParticipants) {
                 if (player.getUserId().equals(opponent.getUserId())) continue;
 
                 int opponentRating = safeRating(opponent);
@@ -443,7 +470,6 @@ public class ContestServiceImpl implements ContestService {
                 // Actual outcome: 1 = player ranked higher (lower number), 0.5 = tie, 0 = lower
                 if (playerRank < opponentRank)       actualScore += 1.0;
                 else if (playerRank == opponentRank) actualScore += 0.5;
-                // else actualScore += 0.0
             }
 
             // K=32; positive delta when player out-performed expectation
@@ -452,8 +478,25 @@ public class ContestServiceImpl implements ContestService {
         }
 
         // Apply and persist
-        for (User player : participants) {
-            int newRating = Math.max(0, (int) Math.round(safeRating(player) + deltas.getOrDefault(player.getUserName(), 0.0)));
+        for (User player : activeParticipants) {
+            List<Submission> allUserSubs = submissionRepository.findByUserUserId(player.getUserId(), Pageable.unpaged()).getContent();
+            long previousContestsWithSubmissions = allUserSubs.stream()
+                    .map(Submission::getContest)
+                    .filter(Objects::nonNull)
+                    .filter(c -> !c.getContestId().equals(current.getContestId()))
+                    .filter(c -> Boolean.TRUE.equals(c.getIsRatingCalculated()))
+                    .map(Contest::getContestId)
+                    .distinct()
+                    .count();
+
+            int newRating;
+            if (previousContestsWithSubmissions == 0) {
+                // 1st contest with submissions: rating increases by 800
+                newRating = safeRating(player) + 800;
+            } else {
+                // Subsequent contests: Elo formula
+                newRating = Math.max(0, (int) Math.round(safeRating(player) + deltas.getOrDefault(player.getUserName(), 0.0)));
+            }
             player.setRating(newRating);
             userRepository.save(player);
         }
@@ -467,13 +510,22 @@ public class ContestServiceImpl implements ContestService {
     // ─────────────────────────────────────────────
 
     private ContestDTO toContestDTO(Contest c) {
-        ContestDTO dto = modelMapper.map(c, ContestDTO.class);
+        ContestDTO dto = new ContestDTO();
+        dto.setContestId(c.getContestId());
+        dto.setTitle(c.getTitle());
+        dto.setDescription(c.getDescription());
+        dto.setStartTime(c.getStartTime());
+        dto.setEndTime(c.getEndTime());
         dto.setDurationMinutes(java.time.Duration.between(c.getStartTime(), c.getEndTime()).toMinutes());
-        dto.setParticipantCount(c.getParticipants().size());
-        dto.setProblemCount(c.getContestProblems().size());
+        dto.setParticipantCount(c.getParticipants() != null ? c.getParticipants().size() : 0);
+        dto.setProblemCount(c.getContestProblems() != null ? c.getContestProblems().size() : 0);
         dto.setStatus(resolveStatus(c));
-        dto.setParticipantUsernames(
-                c.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()));
+        if (c.getParticipants() != null) {
+            dto.setParticipantUsernames(
+                    c.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()));
+        } else {
+            dto.setParticipantUsernames(new ArrayList<>());
+        }
         return dto;
     }
 

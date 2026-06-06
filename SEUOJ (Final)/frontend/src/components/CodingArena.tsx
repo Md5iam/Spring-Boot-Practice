@@ -46,29 +46,18 @@ interface SubmissionItem {
 const CPP_MAIN = `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n\n    \n\n    return 0;\n}`;
 
 function escapeHtml(input: string) {
-  return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function highlightCode(lang: 'python' | 'java' | 'cpp', code: string) {
-  // Lightweight dependency-free highlighting (approximate, VS Code–inspired palette).
-  let html = escapeHtml(code);
   const wrap = (cls: string, text: string) => `<span class="${cls}">${text}</span>`;
 
-  // Strings (single/double/backtick)
-  html = html.replace(/(".*?"|'.*?'|`.*?`)/g, (m) => wrap('tok-string', m));
-
-  // Comments
-  if (lang === 'python') {
-    html = html.replace(/(^|\s)#.*$/gm, (m) => wrap('tok-comment', m));
-  } else {
-    html = html.replace(/\/\/.*$/gm, (m) => wrap('tok-comment', m));
-    html = html.replace(/\/\*[\s\S]*?\*\//g, (m) => wrap('tok-comment', m));
-  }
-
-  // Numbers
-  html = html.replace(/\b(\d+(\.\d+)?)\b/g, (m) => wrap('tok-number', m));
-
-  // Keywords
+  // Define language keywords and types
   const keywords =
     lang === 'python'
       ? [
@@ -85,21 +74,46 @@ function highlightCode(lang: 'python' | 'java' | 'cpp', code: string) {
           'return','if','else','for','while','break','continue','switch','case','default','namespace','using','new','delete','include'
         ];
 
-  const kwRegex = new RegExp(`\\b(${keywords.map(k => k.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')).join('|')})\\b`, 'g');
-  html = html.replace(kwRegex, (m) => wrap('tok-keyword', m));
+  const types =
+    lang === 'cpp'
+      ? ['std','vector','string','map','set','unordered_map','unordered_set','pair','queue','stack','priority_queue']
+      : lang === 'python'
+      ? ['range','len','list','dict','set','tuple','int','float','str','sum','min','max','sorted','enumerate','zip','map','filter']
+      : [];
 
-  // Types / builtins
-  if (lang === 'cpp') {
-    html = html.replace(/\b(std|vector|string|map|set|unordered_map|unordered_set|pair|queue|stack|priority_queue)\b/g, (m) => wrap('tok-type', m));
-  }
-  if (lang === 'python') {
-    html = html.replace(/\b(range|len|list|dict|set|tuple|int|float|str|sum|min|max|sorted|enumerate|zip|map|filter)\b/g, (m) => wrap('tok-type', m));
-  }
+  const commentPattern = lang === 'python' ? '(#.*)' : '(\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/)';
+  const stringPattern = '("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|`(?:\\\\.|[^`\\\\])*`)';
+  
+  const escapedKeywords = keywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const keywordPattern = `\\b(${escapedKeywords})\\b`;
+  
+  const typePattern = types.length > 0
+    ? `\\b(${types.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`
+    : '(\\b\\B)'; // a capturing group that never matches to preserve group indexing
+    
+  const fnPattern = '\\b([A-Za-z_]\\w*)(?=\\s*\\()';
+  const numPattern = '\\b(\\d+(?:\\.\\d+)?)\\b';
+  const otherPattern = '([^\\w\\s]+|\\w+|\\s+)';
 
-  // Function calls (identifier before "(")
-  html = html.replace(/\b([A-Za-z_]\w*)\s*(?=\()/g, (m) => wrap('tok-fn', m));
+  const combinedRegex = new RegExp([
+    commentPattern,
+    stringPattern,
+    keywordPattern,
+    typePattern,
+    fnPattern,
+    numPattern,
+    otherPattern
+  ].join('|'), 'g');
 
-  return html;
+  return code.replace(combinedRegex, (match, comment, str, kw, type, fn, num) => {
+    if (comment !== undefined) return wrap('tok-comment', escapeHtml(comment));
+    if (str !== undefined) return wrap('tok-string', escapeHtml(str));
+    if (kw !== undefined) return wrap('tok-keyword', escapeHtml(kw));
+    if (type !== undefined) return wrap('tok-type', escapeHtml(type));
+    if (fn !== undefined) return wrap('tok-fn', escapeHtml(fn));
+    if (num !== undefined) return wrap('tok-number', escapeHtml(num));
+    return escapeHtml(match);
+  });
 }
 
 
@@ -590,19 +604,25 @@ export default function CodingArena({ problemId, contestId, onBack, triggerAuth,
             </div>
             
             {/* Language Selection Tab */}
-            <div className="flex bg-white border border-slate-200/80 p-0.5 rounded-xl shadow-inner">
+            <div className="flex bg-white border border-slate-200/80 p-0.5 rounded-xl shadow-inner gap-1 items-center">
               {(['python', 'java', 'cpp'] as const).map((langItem) => (
-                <button
+                <label
                   key={langItem}
                   onClick={() => setLang(langItem)}
-                  className={`text-[10px] font-black px-2.5 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1.5 rounded-lg uppercase tracking-wider transition-all cursor-pointer select-none ${
                     lang === langItem 
                       ? 'bg-slate-900 text-white' 
                       : 'text-slate-400 hover:text-slate-700'
                   }`}
                 >
-                  {langItem === 'cpp' ? 'C++' : langItem}
-                </button>
+                  <input
+                    type="checkbox"
+                    checked={lang === langItem}
+                    readOnly
+                    className="accent-white h-3 w-3 pointer-events-none rounded"
+                  />
+                  <span>{langItem === 'cpp' ? 'C++' : langItem}</span>
+                </label>
               ))}
             </div>
           </div>
@@ -614,7 +634,7 @@ export default function CodingArena({ problemId, contestId, onBack, triggerAuth,
             <pre
               ref={editorPreRef}
               aria-hidden="true"
-              className="absolute inset-0 m-0 overflow-auto p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap break-words"
+              className="absolute inset-0 m-0 overflow-auto p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap break-words editor-pre"
               style={{ tabSize: 4 }}
               dangerouslySetInnerHTML={{ __html: highlighted + '\n' }}
             />
@@ -644,7 +664,7 @@ export default function CodingArena({ problemId, contestId, onBack, triggerAuth,
               .tok-keyword { color: rgb(167, 139, 250); font-weight: 700; }
               .tok-type { color: rgb(45, 212, 191); }
               .tok-fn { color: rgb(34, 211, 238); }
-              pre { color: rgb(226, 232, 240); }
+              .editor-pre { color: rgb(226, 232, 240); }
             `}</style>
           </div>
 

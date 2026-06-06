@@ -75,10 +75,12 @@ public class SubmissionServiceImpl implements SubmissionService {
                 throw new APIException("Submissions are only allowed during the contest period!");
             }
 
-            // Validate that the user is registered for this contest
+            // Validate that the user is registered for this contest or is an administrator
+            boolean isAdmin = user.getRoles().stream()
+                    .anyMatch(r -> r.getRoleName() == AppRole.ROLE_ADMIN);
             boolean isRegistered = contest.getParticipants().stream()
                     .anyMatch(u -> u.getUserId().equals(user.getUserId()));
-            if (!isRegistered) {
+            if (!isRegistered && !isAdmin) {
                 throw new APIException("You must be registered for this contest to submit solutions!");
             }
 

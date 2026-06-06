@@ -16,6 +16,7 @@ interface ContestCreationModalProps {
   onClose: () => void;
   user: UserSession | null;
   onSuccess: () => void;
+  editContestId?: number | null;
 }
 
 interface RepositoryProblem {
@@ -30,7 +31,7 @@ interface AddedProblem {
   points: number;
 }
 
-export default function ContestCreationModal({ isOpen, onClose, user, onSuccess }: ContestCreationModalProps) {
+export default function ContestCreationModal({ isOpen, onClose, user, onSuccess, editContestId }: ContestCreationModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -43,21 +44,64 @@ export default function ContestCreationModal({ isOpen, onClose, user, onSuccess 
   const [search, setSearch] = useState('');
   const [repoProblems, setRepoProblems] = useState<RepositoryProblem[]>([]);
   const [addedProblems, setAddedProblems] = useState<AddedProblem[]>([]);
+  const [originalProblems, setOriginalProblems] = useState<AddedProblem[]>([]);
   const [loadingProblems, setLoadingProblems] = useState(false);
+
+  const formatDateForInput = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const pad = (num: number) => String(num).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const fetchContestToEdit = async () => {
+    try {
+      const token = user?.jwtToken || user?.token;
+      const response = await fetch(`/api/contests/${editContestId}/detail`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTitle(data.title);
+        setDescription(data.description);
+        setStartTime(formatDateForInput(data.startTime));
+        setEndTime(formatDateForInput(data.endTime));
+        const mappedProbs = (data.problems || []).map((p: any) => ({
+          problemId: p.problemId,
+          title: p.title,
+          points: p.points
+        }));
+        setAddedProblems(mappedProbs);
+        setOriginalProblems(mappedProbs);
+      } else {
+        setErrorMsg('Failed to fetch contest details for editing.');
+      }
+    } catch (e) {
+      console.error(e);
+      setErrorMsg('Error loading contest details.');
+    }
+  };
 
   useEffect(() => {
     if (isOpen && user) {
       fetchProblems();
-      // Reset form states
-      setTitle('');
-      setDescription('');
-      setStartTime('');
-      setEndTime('');
-      setAddedProblems([]);
-      setErrorMsg('');
-      setSuccessMsg('');
+      if (editContestId) {
+        fetchContestToEdit();
+      } else {
+        // Reset form states
+        setTitle('');
+        setDescription('');
+        setStartTime('');
+        setEndTime('');
+        setAddedProblems([]);
+        setOriginalProblems([]);
+        setErrorMsg('');
+        setSuccessMsg('');
+      }
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, editContestId]);
 
   const fetchProblems = async () => {
     setLoadingProblems(true);
@@ -112,51 +156,113 @@ export default function ContestCreationModal({ isOpen, onClose, user, onSuccess 
 
     setLoading(true);
     try {
-      // 1. Create the contest
       const token = user.jwtToken || user.token;
-      const contestResponse = await fetch('/api/admin/contests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          startTime: startTime,
-          endTime: endTime
-        })
-      });
 
-      if (!contestResponse.ok) {
-        const err = await contestResponse.json();
-        throw new Error(err.message || 'Failed to create contest instance.');
-      }
+      if (editContestId) {
+        // 1. Update the contest metadata
+        const contestResponse = await fetch(`/api/admin/contests/${editContestId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            startTime,
+            endTime
+          })
+        });
 
-      const createdContest = await contestResponse.json();
-      const contestId = createdContest.contestId;
+        if (!contestResponse.ok) {
+          const err = await contestResponse.json();
+          throw new Error(err.message || 'Failed to update contest settings.');
+        }
 
-      // 2. Add each problem to the contest
-      for (const item of addedProblems) {
-        const probResponse = await fetch(`/api/admin/contests/${contestId}/problems?problemId=${item.problemId}&points=${item.points}`, {
+        // 2. Diff problems:
+        // Problems to remove: in original but not in added, or if in both but points changed (so we recreate)
+        const toRemove = originalProblems.filter(op => 
+          !addedProblems.some(ap => ap.problemId === op.problemId && ap.points === op.points)
+        );
+
+        // Problems to add: in added but not in original, or points changed
+        const toAdd = addedProblems.filter(ap => 
+          !originalProblems.some(op => op.problemId === ap.problemId && op.points === ap.points)
+        );
+
+        // Remove old problem associations
+        for (const op of toRemove) {
+          await fetch(`/api/admin/contests/${editContestId}/problems/${op.problemId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+        }
+
+        // Add new/updated problem associations
+        for (const ap of toAdd) {
+          await fetch(`/api/admin/contests/${editContestId}/problems?problemId=${ap.problemId}&points=${ap.points}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+        }
+
+        setSuccessMsg('Contest settings and problem mappings updated successfully!');
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1500);
+
+      } else {
+        // 1. Create the contest
+        const contestResponse = await fetch('/api/admin/contests', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            startTime: startTime,
+            endTime: endTime
+          })
         });
-        if (!probResponse.ok) {
-          console.error(`Failed to assign problem ID ${item.problemId} to contest.`);
-        }
-      }
 
-      setSuccessMsg('Contest established and scheduled successfully!');
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1500);
+        if (!contestResponse.ok) {
+          const err = await contestResponse.json();
+          throw new Error(err.message || 'Failed to create contest instance.');
+        }
+
+        const createdContest = await contestResponse.json();
+        const contestId = createdContest.contestId;
+
+        // 2. Add each problem to the contest
+        for (const item of addedProblems) {
+          const probResponse = await fetch(`/api/admin/contests/${contestId}/problems?problemId=${item.problemId}&points=${item.points}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (!probResponse.ok) {
+            console.error(`Failed to assign problem ID ${item.problemId} to contest.`);
+          }
+        }
+
+        setSuccessMsg('Contest established and scheduled successfully!');
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1500);
+      }
     } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred while establishing the contest.');
+      setErrorMsg(err.message || 'An error occurred while establishing/updating the contest.');
     } finally {
       setLoading(false);
     }
@@ -180,7 +286,9 @@ export default function ContestCreationModal({ isOpen, onClose, user, onSuccess 
               <Trophy className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 text-lg leading-snug">Setup Contest</h3>
+              <h3 className="font-extrabold text-slate-900 text-lg leading-snug">
+                {editContestId ? 'Edit Contest Settings' : 'Setup Contest'}
+              </h3>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Academic Competition Platform</p>
             </div>
           </div>
@@ -366,12 +474,12 @@ export default function ContestCreationModal({ isOpen, onClose, user, onSuccess 
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin text-white" />
-                Scheduling...
+                {editContestId ? 'Updating...' : 'Scheduling...'}
               </>
             ) : (
               <>
                 <Award className="h-4 w-4" />
-                Establish Contest
+                {editContestId ? 'Save Changes' : 'Establish Contest'}
               </>
             )}
           </button>

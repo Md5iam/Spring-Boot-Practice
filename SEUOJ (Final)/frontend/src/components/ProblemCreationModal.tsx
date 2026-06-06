@@ -194,15 +194,30 @@ export default function ProblemCreationModal({ isOpen, onClose, onSuccess, user 
             </div>
             <div>
               <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Difficulty</label>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:bg-white text-slate-850 transition-all"
-              >
-                <option value="EASY">Easy</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HARD">Hard</option>
-              </select>
+              <div className="flex bg-slate-50 border border-slate-200/80 p-1 rounded-2xl shadow-inner gap-1">
+                {(['EASY', 'MEDIUM', 'HARD'] as const).map((diff) => (
+                  <button
+                    key={diff}
+                    type="button"
+                    onClick={() => setDifficulty(diff)}
+                    className={`flex-1 text-xs font-extrabold py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      difficulty === diff
+                        ? diff === 'EASY' ? 'bg-emerald-600 text-white shadow' :
+                          diff === 'MEDIUM' ? 'bg-amber-500 text-white shadow' :
+                          'bg-rose-600 text-white shadow'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={difficulty === diff}
+                      readOnly
+                      className="accent-white h-3 w-3 pointer-events-none rounded"
+                    />
+                    {diff === 'EASY' ? 'Easy' : diff === 'MEDIUM' ? 'Medium' : 'Hard'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

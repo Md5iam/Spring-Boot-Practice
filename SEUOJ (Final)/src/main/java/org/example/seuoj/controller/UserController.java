@@ -4,6 +4,7 @@ import org.example.seuoj.payload.User.RankDTO;
 import org.example.seuoj.payload.User.UserDashboardDTO;
 import org.example.seuoj.payload.User.UserProfileDTO;
 import org.example.seuoj.service.UserService;
+import org.example.seuoj.service.ContestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ContestService contestService;
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfileDTO> getMyProfile(Authentication authentication) {
@@ -38,6 +42,11 @@ public class UserController {
 
     @GetMapping("/leaderboard")
     public ResponseEntity<List<RankDTO>> getLeaderboard() {
+        try {
+            contestService.calculateAllPendingContestRatings();
+        } catch (Exception e) {
+            // Ignore exceptions to keep leaderboard operational
+        }
         List<RankDTO> leaderboard = userService.getGlobalLeaderboard();
         return ResponseEntity.ok(leaderboard);
     }

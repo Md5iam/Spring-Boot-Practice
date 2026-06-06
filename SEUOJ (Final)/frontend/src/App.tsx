@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Stats from './components/Stats';
@@ -7,6 +7,7 @@ import ActiveContests from './components/ActiveContests';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import BackgroundCodeParticles from './components/BackgroundCodeParticles';
+
 import ProblemsDashboard from './components/ProblemsDashboard';
 import CodingArena from './components/CodingArena';
 import SubmissionsDashboard from './components/SubmissionsDashboard';
@@ -23,12 +24,67 @@ export default function App() {
   });
   const [selectedProblemId, setSelectedProblemId] = useState<number | null>(null);
   const [activeContestId, setActiveContestId] = useState<number | null>(null);
+  const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
   const [arenaBackView, setArenaBackView] = useState<'problems' | 'contests'>('problems');
 
   const [user, setUser] = useState<{ id: number; username: string; email: string; roles: string[] } | null>(() => {
     const stored = localStorage.getItem('seuoj_user');
     return stored ? JSON.parse(stored) : null;
   });
+
+  // State-to-Hash URL Synchronization
+  useEffect(() => {
+    let hash = `#${view}`;
+    const params = new URLSearchParams();
+    if (view === 'arena') {
+      if (selectedProblemId) params.set('problemId', String(selectedProblemId));
+      if (activeContestId) params.set('contestId', String(activeContestId));
+    } else if (view === 'contests' && selectedContestId) {
+      params.set('selectedContestId', String(selectedContestId));
+    }
+    const paramStr = params.toString();
+    if (paramStr) {
+      hash += `?${paramStr}`;
+    }
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;
+    }
+  }, [view, selectedProblemId, activeContestId, selectedContestId]);
+
+  // Hash-to-State Synchronization (Browser Back/Forward Nav)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash || '#';
+      const pathPart = hash.split('?')[0].replace('#', '');
+      const queryPart = hash.split('?')[1] || '';
+      const params = new URLSearchParams(queryPart);
+
+      let newView: typeof view = 'landing';
+      if (['problems', 'arena', 'submissions', 'leaderboard', 'contests', 'users'].includes(pathPart)) {
+        newView = pathPart as typeof view;
+      } else {
+        newView = user ? 'problems' : 'landing';
+      }
+
+      setView(newView);
+
+      if (newView === 'arena') {
+        const pid = params.get('problemId');
+        const cid = params.get('contestId');
+        if (pid) setSelectedProblemId(Number(pid));
+        if (cid) setActiveContestId(Number(cid));
+      } else if (newView === 'contests') {
+        const scid = params.get('selectedContestId');
+        setSelectedContestId(scid ? Number(scid) : null);
+      }
+    };
+
+    // Initialize on mount
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [user]);
 
   const triggerAuth = (mode: 'login' | 'signup' = 'login') => {
     setAuthMode(mode);
@@ -40,6 +96,9 @@ export default function App() {
       setView('problems');
     } else {
       setView(newView);
+    }
+    if (newView === 'contests') {
+      setSelectedContestId(null);
     }
   };
 
@@ -57,6 +116,9 @@ export default function App() {
   const handleSelectProblem = (problemId: number, contestId?: number) => {
     setSelectedProblemId(problemId);
     setActiveContestId(contestId ?? null);
+    if (contestId) {
+      setSelectedContestId(contestId);
+    }
     setArenaBackView(contestId ? 'contests' : 'problems');
     setView('arena');
   };
@@ -64,7 +126,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen flex flex-col bg-ide-bg text-ide-text overflow-hidden">
       {/* Dynamic programming background code floating drift */}
-      {view !== 'arena' && <BackgroundCodeParticles />}
+      {view !== 'arena' && <BackgroundCodeParticles isLanding={view === 'landing'} />}
 
       {/* Sticky header */}
       <Navbar 
@@ -98,7 +160,13 @@ export default function App() {
         ) : view === 'leaderboard' ? (
           <Leaderboard user={user} triggerAuth={triggerAuth} />
         ) : view === 'contests' ? (
-          <ContestsDashboard user={user} triggerAuth={triggerAuth} onSelectProblem={handleSelectProblem} />
+          <ContestsDashboard 
+            user={user} 
+            triggerAuth={triggerAuth} 
+            onSelectProblem={handleSelectProblem}
+            selectedContestId={selectedContestId}
+            setSelectedContestId={setSelectedContestId}
+          />
         ) : view === 'users' ? (
           <UsersDashboard user={user} />
         ) : (

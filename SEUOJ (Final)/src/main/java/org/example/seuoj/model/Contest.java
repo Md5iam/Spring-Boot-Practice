@@ -2,6 +2,7 @@ package org.example.seuoj.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -44,9 +45,11 @@ public class Contest {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<User> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "contest", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<ContestProblem> contestProblems = new ArrayList<>();
 }

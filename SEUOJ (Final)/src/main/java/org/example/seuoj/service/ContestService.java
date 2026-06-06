@@ -19,4 +19,5 @@ public interface ContestService {
     List<ContestDTO> getUpcomingContests();
     List<ContestDTO> getOngoingContests();
     List<ContestDTO> getPastContests();
+    void calculateAllPendingContestRatings();
 }

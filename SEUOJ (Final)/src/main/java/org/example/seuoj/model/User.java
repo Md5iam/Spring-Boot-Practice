@@ -78,5 +78,6 @@ public class User {
     @Setter
     @ManyToMany(mappedBy = "participants", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Contest> contests = new HashSet<>();
 }

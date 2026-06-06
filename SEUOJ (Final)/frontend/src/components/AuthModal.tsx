@@ -200,7 +200,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-blue-500/10 transition-all hover:scale-[1.02] text-center mt-3 text-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {mode === 'login' ? 'Authenticate' : 'Create Account'}
+                {mode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             </form>
 
