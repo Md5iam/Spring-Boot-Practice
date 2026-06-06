@@ -650,3 +650,16 @@ org.springframework.security.authentication.BadCredentialsException: Bad credent
 2026-06-06T18:24:58.299+06:00  INFO 45953 --- [SEUOJ] [         task-8] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Running testcase 2/2 for submission 40
 2026-06-06T18:24:58.305+06:00  INFO 45953 --- [SEUOJ] [         task-8] o.e.seuoj.service.JudgeServiceImpl       : [Judge] Submission 40 evaluated: ACCEPTED in 2ms
 2026-06-06T18:24:58.309+06:00  INFO 45953 --- [SEUOJ] [         task-8] o.e.seuoj.service.AsyncJudgeExecutor     : [AsyncJudge] Finished judging submission 40 -> ACCEPTED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:35 h
+[INFO] Finished at: 2026-06-06T18:35:37+06:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:4.0.6:run (default-cli) on project SEUOJ: Process terminated with exit code: 137 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

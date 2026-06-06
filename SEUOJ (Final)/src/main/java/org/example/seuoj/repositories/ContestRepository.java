@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ContestRepository extends JpaRepository<Contest, Long> {
-    List<Contest> findByStartTimeAfterOrderByStartTimeAsc(LocalDateTime time);
-    List<Contest> findByStartTimeBeforeAndEndTimeAfterOrderByStartTimeDesc(LocalDateTime now1, LocalDateTime now2);
-    List<Contest> findByEndTimeBeforeOrderByEndTimeDesc(LocalDateTime time);
+    List<Contest> findByStartTimeAfterOrderByStartTimeAsc(LocalDateTime time); // upcoming contest
+    List<Contest> findByStartTimeBeforeAndEndTimeAfterOrderByStartTimeDesc(LocalDateTime now1, LocalDateTime now2); // ongoing
+    List<Contest> findByEndTimeBeforeOrderByEndTimeDesc(LocalDateTime time); // past
 }
