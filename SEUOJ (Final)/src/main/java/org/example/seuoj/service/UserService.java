@@ -17,4 +17,5 @@ public interface UserService {
     UserDTO banUser(Long userId, String reason, LocalDateTime until, String adminUsername);
     UserDTO unbanUser(Long userId, String adminUsername);
     UserDTO promoteToAdmin(Long userId, String adminUsername);
+    org.example.seuoj.payload.User.UserSolveCountDTO getUserSolveCountByUsername(String username);
 }

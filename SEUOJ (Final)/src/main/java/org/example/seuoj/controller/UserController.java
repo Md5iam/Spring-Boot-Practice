@@ -50,4 +50,16 @@ public class UserController {
         List<RankDTO> leaderboard = userService.getGlobalLeaderboard();
         return ResponseEntity.ok(leaderboard);
     }
+
+    @GetMapping("/solve-count")
+    public ResponseEntity<org.example.seuoj.payload.User.UserSolveCountDTO> getMySolveCount(Authentication authentication) {
+        org.example.seuoj.payload.User.UserSolveCountDTO solveCount = userService.getUserSolveCountByUsername(authentication.getName());
+        return ResponseEntity.ok(solveCount);
+    }
+
+    @GetMapping("/solve-count/{username}")
+    public ResponseEntity<org.example.seuoj.payload.User.UserSolveCountDTO> getUserSolveCount(@PathVariable String username) {
+        org.example.seuoj.payload.User.UserSolveCountDTO solveCount = userService.getUserSolveCountByUsername(username);
+        return ResponseEntity.ok(solveCount);
+    }
 }

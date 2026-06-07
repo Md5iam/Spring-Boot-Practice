@@ -20,20 +20,6 @@ import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Native code compilation and execution judge engine.
- * Compiles and runs user code locally using g++, javac, and python3
- * without relying on any external judge API.
- *
- * Execution model:
- *  1. A unique temp sandbox directory is created per submission.
- *  2. Source code is written to a file in that directory.
- *  3. For C++/Java: compilation is run first; Python is interpreted directly.
- *  4. Each test case is run in a separate child process with a timeout.
- *  5. stdout/stderr are drained concurrently to prevent buffer-fill deadlocks.
- *  6. Output is compared line-by-line (trimmed) against expected output.
- *  7. The sandbox directory is deleted after evaluation finishes.
- */
 @Service
 @Transactional
 public class JudgeServiceImpl implements JudgeService {
@@ -42,9 +28,19 @@ public class JudgeServiceImpl implements JudgeService {
     @Autowired
     private SubmissionRepository submissionRepository;
 
-    // ------------------------------------------------------------------ //
-    //  Main entry point
-    // ------------------------------------------------------------------ //
+    // User submits code
+    // ↓
+    // Create a sandbox folder (temp workspace)
+    // ↓
+    // Write code to a file
+    // ↓
+    // Compile the code (C++/Java)
+    // ↓
+    // Run against each test case
+    // ↓
+    // Compare output with expected
+    // ↓
+    // Return result + cleanup sandbox
 
     @Override
     public void execute(Submission submission, List<TestCase> testCases) {
@@ -74,7 +70,8 @@ public class JudgeServiceImpl implements JudgeService {
             // --- Compilation Stage ---
             CompileResult compileResult = compileCode(lang, tempDir, sourceFilename);
             if (!compileResult.success) {
-                logger.warn("[Judge] Compilation FAILED for submission {}: {}", submission.getSubmissionId(), compileResult.errorOutput);
+                logger.warn("[Judge] Compilation FAILED for submission {}: {}", submission.getSubmissionId(),
+                        compileResult.errorOutput);
                 submission.setStatus(SubmissionStatus.COMPILATION_ERROR);
                 submission.setErrorMessage(compileResult.errorOutput);
                 submission.setExecutionTimeMs(0);
@@ -94,10 +91,11 @@ public class JudgeServiceImpl implements JudgeService {
 
             for (int i = 0; i < testCases.size(); i++) {
                 TestCase tc = testCases.get(i);
-                String input    = tc.getInput()          != null ? tc.getInput()          : "";
+                String input = tc.getInput() != null ? tc.getInput() : "";
                 String expected = tc.getExpectedOutput() != null ? tc.getExpectedOutput() : "";
 
-                logger.info("[Judge] Running testcase {}/{} for submission {}", i + 1, testCases.size(), submission.getSubmissionId());
+                logger.info("[Judge] Running testcase {}/{} for submission {}", i + 1, testCases.size(),
+                        submission.getSubmissionId());
 
                 RunResult result = runProcess(lang, tempDir, className, input, timeLimitMs);
 
@@ -105,7 +103,8 @@ public class JudgeServiceImpl implements JudgeService {
 
                 if (result.status == RunStatus.TIMEOUT) {
                     finalStatus = SubmissionStatus.TIME_LIMIT_EXCEEDED;
-                    finalErrorMessage = String.format("Time Limit Exceeded on testcase %d (limit: %d ms)", i + 1, timeLimitMs);
+                    finalErrorMessage = String.format("Time Limit Exceeded on testcase %d (limit: %d ms)", i + 1,
+                            timeLimitMs);
                     break;
                 }
 
@@ -124,7 +123,8 @@ public class JudgeServiceImpl implements JudgeService {
                 }
             }
 
-            logger.info("[Judge] Submission {} evaluated: {} in {}ms", submission.getSubmissionId(), finalStatus, maxTimeMs);
+            logger.info("[Judge] Submission {} evaluated: {} in {}ms", submission.getSubmissionId(), finalStatus,
+                    maxTimeMs);
 
             submission.setStatus(finalStatus);
             submission.setExecutionTimeMs(maxTimeMs);
@@ -145,7 +145,7 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     // ------------------------------------------------------------------ //
-    //  Compilation
+    // Compilation
     // ------------------------------------------------------------------ //
 
     private CompileResult compileCode(Language lang, Path sandboxDir, String sourceFilename)
@@ -189,11 +189,11 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     // ------------------------------------------------------------------ //
-    //  Process execution with concurrent I/O draining
+    // Process execution with concurrent I/O draining
     // ------------------------------------------------------------------ //
 
     private RunResult runProcess(Language lang, Path sandboxDir, String className,
-                                 String input, long timeLimitMs) {
+            String input, long timeLimitMs) {
         ProcessBuilder pb;
         if (lang == Language.CPP) {
             pb = new ProcessBuilder("./solution");
@@ -221,7 +221,8 @@ public class JudgeServiceImpl implements JudgeService {
             return drainAndWait(proc, input, timeLimitMs);
 
         } catch (Exception e) {
-            if (proc != null) proc.destroyForcibly();
+            if (proc != null)
+                proc.destroyForcibly();
             long wallMs = (System.nanoTime() - startNs) / 1_000_000;
             return new RunResult(RunStatus.RUNTIME_ERROR, "", "Process launch error: " + e.getMessage(), wallMs);
         }
@@ -268,50 +269,64 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     // ------------------------------------------------------------------ //
-    //  Output comparison
+    // Output comparison
     // ------------------------------------------------------------------ //
 
     private boolean compareOutputs(String actual, String expected) {
-        String normActual   = actual.replace("\r\n", "\n").trim();
+        String normActual = actual.replace("\r\n", "\n").trim();
         String normExpected = expected.replace("\r\n", "\n").trim();
 
-        String[] aLines = normActual.isEmpty()   ? new String[0] : normActual.split("\n");
+        String[] aLines = normActual.isEmpty() ? new String[0] : normActual.split("\n");
         String[] eLines = normExpected.isEmpty() ? new String[0] : normExpected.split("\n");
 
-        if (aLines.length != eLines.length) return false;
+        if (aLines.length != eLines.length)
+            return false;
 
         for (int i = 0; i < aLines.length; i++) {
-            if (!aLines[i].trim().equals(eLines[i].trim())) return false;
+            if (!aLines[i].trim().equals(eLines[i].trim()))
+                return false;
         }
         return true;
     }
 
     // ------------------------------------------------------------------ //
-    //  Helpers
+    // Helpers
     // ------------------------------------------------------------------ //
 
     private String extractJavaClassName(String code, Language lang) {
-        if (lang != Language.JAVA) return "Solution";
+        if (lang != Language.JAVA)
+            return "Solution";
         Matcher m = Pattern.compile("public\\s+class\\s+(\\w+)").matcher(code);
         return m.find() ? m.group(1) : "Solution";
     }
 
     private String getSourceFilename(Language lang, String className) {
         switch (lang) {
-            case CPP:    return "solution.cpp";
-            case JAVA:   return className + ".java";
-            case PYTHON: return "solution.py";
-            default:     return "solution.txt";
+            case CPP:
+                return "solution.cpp";
+            case JAVA:
+                return className + ".java";
+            case PYTHON:
+                return "solution.py";
+            default:
+                return "solution.txt";
         }
     }
 
-    /** Rough memory estimate per language (real measurement would require /proc/PID/status) */
+    /**
+     * Rough memory estimate per language (real measurement would require
+     * /proc/PID/status)
+     */
     private int estimateMemoryKb(Language lang) {
         switch (lang) {
-            case CPP:    return 3_200;
-            case JAVA:   return 24_000;
-            case PYTHON: return 8_500;
-            default:     return 5_000;
+            case CPP:
+                return 3_200;
+            case JAVA:
+                return 24_000;
+            case PYTHON:
+                return 8_500;
+            default:
+                return 5_000;
         }
     }
 
@@ -339,19 +354,24 @@ public class JudgeServiceImpl implements JudgeService {
     private void deleteSandbox(Path dir) {
         try {
             Files.walk(dir)
-                 .sorted(java.util.Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(f -> { if (!f.delete()) f.deleteOnExit(); });
+                    .sorted(java.util.Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(f -> {
+                        if (!f.delete())
+                            f.deleteOnExit();
+                    });
         } catch (Exception e) {
             logger.warn("[Judge] Failed to clean sandbox {}: {}", dir, e.getMessage());
         }
     }
 
     // ------------------------------------------------------------------ //
-    //  Inner result types
+    // Inner result types
     // ------------------------------------------------------------------ //
 
-    private enum RunStatus { SUCCESS, TIMEOUT, RUNTIME_ERROR }
+    private enum RunStatus {
+        SUCCESS, TIMEOUT, RUNTIME_ERROR
+    }
 
     private static class RunResult {
         final RunStatus status;
@@ -360,21 +380,25 @@ public class JudgeServiceImpl implements JudgeService {
         final long wallTimeMs;
 
         RunResult(RunStatus status, String stdout, String stderr, long wallTimeMs) {
-            this.status = status; this.stdout = stdout;
-            this.stderr = stderr; this.wallTimeMs = wallTimeMs;
+            this.status = status;
+            this.stdout = stdout;
+            this.stderr = stderr;
+            this.wallTimeMs = wallTimeMs;
         }
     }
 
     private static class CompileResult {
         final boolean success;
         final String errorOutput;
+
         CompileResult(boolean success, String errorOutput) {
-            this.success = success; this.errorOutput = errorOutput;
+            this.success = success;
+            this.errorOutput = errorOutput;
         }
     }
 
     // ------------------------------------------------------------------ //
-    //  Single Execution (Run without saving to DB)
+    // Single Execution (Run without saving to DB)
     // ------------------------------------------------------------------ //
 
     @Override
@@ -416,4 +440,3 @@ public class JudgeServiceImpl implements JudgeService {
         }
     }
 }
-

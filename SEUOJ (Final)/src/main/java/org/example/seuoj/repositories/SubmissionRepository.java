@@ -17,4 +17,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByUserUserIdAndProblemProblemIdAndStatus(Long userId, Long problemId, SubmissionStatus status);
     Long countByUserUserIdAndStatus(Long userId, SubmissionStatus status);
     Long countByUserUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT s.problem.problemId) FROM Submission s WHERE s.user.userId = :userId AND s.problem.difficulty = :difficulty AND s.status = :status")
+    Long countDistinctProblemSolvedByUserIdAndDifficultyAndStatus(
+        @org.springframework.data.repository.query.Param("userId") Long userId,
+        @org.springframework.data.repository.query.Param("difficulty") org.example.seuoj.model.Difficulty difficulty,
+        @org.springframework.data.repository.query.Param("status") SubmissionStatus status
+    );
 }

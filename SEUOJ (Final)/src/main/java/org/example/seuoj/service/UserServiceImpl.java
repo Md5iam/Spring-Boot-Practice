@@ -221,4 +221,19 @@ public class UserServiceImpl implements UserService {
         }
         return 1;
     }
+
+    @Override
+    public org.example.seuoj.payload.User.UserSolveCountDTO getUserSolveCountByUsername(String username) {
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new org.example.seuoj.exceptions.ResourceNotFoundException("User", "username", username));
+
+        Long easy = submissionRepository.countDistinctProblemSolvedByUserIdAndDifficultyAndStatus(
+                user.getUserId(), org.example.seuoj.model.Difficulty.EASY, org.example.seuoj.model.SubmissionStatus.ACCEPTED);
+        Long medium = submissionRepository.countDistinctProblemSolvedByUserIdAndDifficultyAndStatus(
+                user.getUserId(), org.example.seuoj.model.Difficulty.MEDIUM, org.example.seuoj.model.SubmissionStatus.ACCEPTED);
+        Long hard = submissionRepository.countDistinctProblemSolvedByUserIdAndDifficultyAndStatus(
+                user.getUserId(), org.example.seuoj.model.Difficulty.HARD, org.example.seuoj.model.SubmissionStatus.ACCEPTED);
+
+        return new org.example.seuoj.payload.User.UserSolveCountDTO(easy, medium, hard);
+    }
 }
